@@ -6,10 +6,12 @@ import {
   FiPlus,
   FiTrash2,
   FiLayers,
-  FiInbox
+  FiInbox,
+  FiLoader
 } from 'react-icons/fi';
 
-const API_URL = 'http://localhost:5000/api';
+// Updated to the deployed Render backend URL
+const API_URL = 'https://pep-mern-final-project.onrender.com/api';
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -17,6 +19,7 @@ function App() {
   const [todoText, setTodoText] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchTodos = async () => {
     try {
@@ -37,8 +40,12 @@ function App() {
   };
 
   useEffect(() => {
-    fetchTodos();
-    fetchNotes();
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchTodos(), fetchNotes()]);
+      setIsLoading(false);
+    };
+    fetchInitialData();
   }, []);
 
   const addTodo = async (e) => {
@@ -83,6 +90,22 @@ function App() {
       console.error("Error deleting note:", error);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="container min-vh-100 d-flex flex-column justify-content-center align-items-center">
+        <FiLoader className="text-primary mb-4" size={64} style={{ animation: 'spin 1.5s linear infinite' }} />
+        <h2 className="text-center h4 text-muted">Waking up the backend server...</h2>
+        <p className="text-center text-muted small mt-2 px-4" style={{ maxWidth: '400px' }}>
+          Free hosting providers put inactive servers to sleep. It may take 30-50 seconds for the application to wake up and load data for the first time.
+        </p>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @keyframes spin { 100% { transform: rotate(360deg); } }
+        `}} />
+      </div>
+    );
+  }
 
   return (
     <div className="container pb-5">
